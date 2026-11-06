@@ -6,3 +6,8 @@ node_modules
 package-lock.json
 .prettierrc
 yarn.lock
+
+# editor / OS noise
+.DS_Store
+Thumbs.db
+*.log
