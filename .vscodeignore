@@ -8,8 +8,8 @@ test/**
 sqlite/**
 images/**
 # docs/ 只保留 images（README 截图需要随包分发，否则上架后市场页面显示破图）；
-# 发布文档 PUBLISH.md 本身不需要进包。
-docs/PUBLISH.md
+# 面向维护者的文档不需要进包。
+docs/RELEASING.md
 .gitignore
 tsconfig.json
 vsc-extension-quickstart.md

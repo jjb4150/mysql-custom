@@ -167,7 +167,7 @@ The upstream README advertised anonymous usage reporting. That code is not prese
 
 ## Contributing
 
-Issues and pull requests are welcome at [github.com/jjb4150/mysql-custom](https://github.com/jjb4150/mysql-custom/issues). See [docs/PUBLISH.md](docs/PUBLISH.md) for the release process.
+Issues and pull requests are welcome at [github.com/jjb4150/mysql-custom](https://github.com/jjb4150/mysql-custom/issues). See [docs/RELEASING.md](docs/RELEASING.md) for the release process.
 
 ## License
 

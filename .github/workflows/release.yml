@@ -4,7 +4,7 @@ name: Release
 #   1. 打 tag:  git tag v1.0.0 && git push origin v1.0.0
 #   2. 本 workflow 自动构建、打包、发布到 VS Code Marketplace 和 Open VSX
 #
-# 两种 marketplace 认证方式，按你配置的来（见 docs/PUBLISH.md）：
+# 两种 marketplace 认证方式，按你配置的来（见 docs/RELEASING.md）：
 #
 #   A) Trusted Publishing（推荐，无需任何 secret）
 #      在 marketplace.visualstudio.com/manage 的 publisher 页 → Trusted Publishing

@@ -167,7 +167,7 @@ code --install-extension mysql-custom-0.1.0.vsix
 
 ## 参与贡献
 
-问题与 PR 都欢迎：[github.com/jjb4150/mysql-custom/issues](https://github.com/jjb4150/mysql-custom/issues)。发布流程见 [docs/PUBLISH.md](docs/PUBLISH.md)。
+问题与 PR 都欢迎：[github.com/jjb4150/mysql-custom/issues](https://github.com/jjb4150/mysql-custom/issues)。发布流程见 [docs/RELEASING.md](docs/RELEASING.md)。
 
 ## 开源协议
 
