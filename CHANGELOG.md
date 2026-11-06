@@ -1,536 +1,106 @@
-# CHANGELOG
+# Changelog
 
-# 3.9.8 2021-7-27
+本文件记录 MySQL Custom 的所有重要变更。
 
-- Support special ssl ca certificate.
-- Hover info add action to query table data.
-- Fix complection bug.
-- ElasticSearch support connect with token or account.
-- Support connect by native ssh command.
-- Fix open struct sync fail.
+格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
+版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-# 3.9.6 2021-7-22
+> 本项目基于 [cweijan/vscode-database-client](https://github.com/cweijan/vscode-database-client)
+> 的最后一个 MIT 版本 **v3.9.8** 二次开发，但**版本号独立起算，不沿用上游的 3.x 序列**。
+> 上游 2021 年及更早的更新记录与本项目无关，不再收录。
 
-- Add hover to run selected sql.
-- Add sql template action icon to table node.
+## [0.1.0] - 2026-11-06
 
-# 3.9.5 2021-7-19
+首个发布版本。定位为**只做 MySQL / MariaDB** 的数据库客户端。
 
-- Using mysqldump to dump database.
-- Fix connect to elasticsearch using ssh tunnel fail.
-- Better postgresql support.
+### 新增
 
-# 3.9.3 2021-7-2
+**多语句执行**
 
-- Better sql complection.
-- Fix multi line space ignored.
+- 多条语句**逐条串行执行**，每条语句的结果各自成为一个结果 tab（此前会把整段当作一条发送，或只回显一句 `EXECUTE SUCCESS` 而丢失数据）
+- 识别 `DELIMITER`，存储过程中的 `BEGIN ... END` 不会被分号拆碎
+- 分句时跳过字符串、反引号标识符、`--` / `#` / `/* */` 三种注释内部的分号
+- 漏写结尾分号时按行尾保守断句（4 条防误拆规则）
+- 遇到首个错误即停止，行为与 `mysql` 命令行一致；**已成功语句的结果保留为 tab**，不会一起丢掉
 
-# 3.9.2 2021-6-24
+**错误定位**
 
-- Enhance sql detect.
-- Update run query shortcut.
-- Keep query file content.
-- Create SQL document outline.
+- MySQL 报错自动换算成 SQL 编辑器中的对应行，打原生 diagnostic 标记，可用 `F8` 跳转
+- 结果面板底部显示一行错误摘要，并提供「跳到出错行」链接
+- 下一次执行成功时自动清除旧标记
 
-# 3.9.0 2021-6-22
+**结果页**
 
-- Support edit connection config.
-- Isolate the configuration of vscode and ssh-remote.
-- Support load data when load timeout.
-- Support install sqlite3 from connect page.
-- Better change active database item.
-- Fix vscode shortcut not working on ssh terminal.
-- Fix mongo export data fail.
-- Update some ui.
+- Excel 式选区：拖动框选、`Shift` 扩展、`Ctrl` 追加离散单元格
+- `Ctrl` + 双击列头，把该列整体追加到选区
+- 双击单元格就地编辑，编辑态为单行内联（`HOME` / `END` 定位整条内容首尾）
+- 双击时按点击位置自由定位光标、拖动圈选，不再强制全选
+- 单元格内容溢出「查看」按钮按**实际** `scrollWidth/Height` 判定，不再用硬编码字符数阈值
+- 列头显示字段名 + 注释 + 类型，带主键 / 非空标记
 
-# 3.8.9 2021-6-16
+**国际化**
 
-- Add shortcut of run sql on result view(ctrl+enter).
-- Support generate database document.
-- Fix bugs.
+- 结果页中英双语，58 条词条，无 `vue-i18n` 运行时依赖
+- 语言来源优先级：扩展侧注入的 `vscode.env.language` → `<html lang>` → `navigator.language`
+- Element UI 自带 locale 随语言同步切换
 
-# 3.8.8 2021-6-11
+**其他**
 
-- Fix date incorrect of sqlserver #199.
-- Prefre using connection name #215.
-- Postgresql query with quote #217.
-- Fix export occur undefined #218.
+- 打 tag 自动发布到 Marketplace 并创建 Release（GitHub Actions）
+- `docs/RELEASING.md`：完整的发布与验证流程
 
-# 3.8.7 2021-6-8
+### 变更
 
-- Update toolbar style.
-- Fix trigger template error.
-- Support using sqlite3 from path.
+- 成功执行时**不显示任何提示框**，直接出数据（原行为会弹一个大框回显 `EXECUTE SUCCESS`）
+- 结果页配色收拢到 `src/vue/result/tokens.css` 的语义变量，全部走 VS Code 主题变量 + 兜底值
+- `repository` / `homepage` / `bugs` 指向本项目仓库
 
-# 3.8.6 2021-6-3
+### 移除
 
-- Support connect redis with ssl.
-- Fix parse empty string or zero as null on result.
+**非 MySQL 模块（194 个文件、15,778 行）**
 
-# 3.8.3 2021-5-18
+- ElasticSearch 支持（含 119 个 REST spec JSON）
+- Redis 支持（含 xterm 终端界面）
+- MongoDB 支持
+- FTP / SFTP 支持
+- Exasol 支持
+- 表结构对比（`structDiff`）与数据 mock
+- SSH 独立连接类型、端口转发界面
 
-- Support connect to MongoDB.
-- Fix postgresql duplicate tables.
+> **SSH 隧道本身保留**：`src/service/tunnel/`、连接页的「SSH Tunnel」开关、`ssh2` 依赖均未改动，
+> 删除的只是「把 SSH 当作一种连接类型」和 xterm 端口转发面板。
 
-# 3.8.2 2021-5-15
+**连带清理**
 
-- Connection keep origin position when edit.
-- Support export SQLite data and struct.
-- Fix possible connection delete bug.
+- 视图容器 `github-junbiaojin-nosql`，以及 17 条相关命令、23 条相关菜单
+- `DatabaseType` 从 10 个取值收缩到 4 个（MySQL / PostgreSQL / SQL Server / SQLite）
+- `sqlite/sqlite-v3.26.0-win32-x86.exe`（890 KB 的未签名 Windows 可执行文件）
+- 上游 README 的 9 处截图与文档链接、`image/` 目录
+- README 中关于「会收集匿名使用数据」的声明（遥测代码实际已全部移除，保留该声明属虚假宣传）
+- 打包内的 `test/**`、`sqlite/**`
 
-# 3.8.0 2021-5-14
+**依赖**
 
-- Support sqlite.
-- SSH support download folder.
+- runtime 依赖 39 → 26（移除 `@exasol/exasol-driver-ts`、`bson`、`mongodb`、`ioredis`、`xterm` ×4、`json-format-highlight`、`ws`、`bufferutil`、`utf-8-validate`、`@types/ws`；`ssh2` 与 `pg` **保留**）
+- 命令 77 → 60，nls 词条 72 → 63
+- 打包体积 3.95 MB → 3.24 MB
 
-# 3.7.6 2021-5-12
+### 修复
 
-- Update ui operation icon.
-- Set ssh terminal as full height.
-- Support open mysql and postgresql terminal.
-- Fix some legacy bugs.
+- **存储型 XSS**：`CellViewer` 用 `json-format-highlight` 渲染 JSON 时，该库对字符串值转义但对**键名不转义**，`{"<img src=x onerror=alert(1)>":1}` 会在查看器中执行。改为自建高亮：先整体 `escapeHtml`，再在已转义文本上叠加 `<span>`
+- `Ctrl` + 双击列头无法多选（`$emit` 时丢掉了 `event`，导致 `event.ctrlKey` 恒为 false）
+- `.info-panel` 硬编码浅色主题颜色（`#444` / `#dcdfe6`），深色主题下几乎不可见
+- `.el-popover__reference { background: #409EFF }` 全局泄漏，把列选择按钮染成主操作色
+- `.el-button:focus` 聚焦色与工具栏同色，键盘导航看不出焦点
+- `result.html` 既无 `<meta charset>` 也无 `<html lang>`，中文有乱码风险
+- 设置按钮因上游缺失 `settings.svg` 而无图标
+- 消息提示中 `message.indexOf` 的空指针
+- 批量执行时 `refresh()` 导致 tab 错位
 
-# 3.7.4 2021-5-11
+### 说明
 
-- Support config ssl connection.
-- Update ui operation icon.
-- Better sql server support.
-- Fix sqlserver cannot edit.
-- Fix sqlserver show object source fail.
+- **正式支持范围是 MySQL / MariaDB**。PostgreSQL / SQL Server / SQLite 的实现予以保留（与 MySQL 共用同一套 dialect、分页与结果页），连接界面也仍可选这四项，但后三者的测试覆盖远不如 MySQL，属于「能用但不保证」。删除它们需要改动 70 处 `switch (dbType)` 分支，风险大于收益，且残留的分支会退化成隐式 fallback
+- **SSH 隧道保留**：`ssh2` 依赖、`src/service/tunnel/`、连接页的 SSH 隧道配置均未改动。SSH 隧道连 MySQL 是常见生产场景
+- 配置项前缀保持 `database-client.*` 不变，以免已有用户的设置失效
 
-# 3.7.3 2021-5-9
-
-- Compatible icon with version 1.56.0 of vscode.
-- Fix include database not work.
-
-# 3.7.2 2021-5-8
-
-- Add cost time to result view.
-- Fix ssh connnection private key not persist.
-- Result show column type.
-
-# 3.7.0 2021-5-7
-
-- Fix struct sync open fail.
-- Mssql add  windows auth option.
-- Fix first data load fail.
-- Trigger refresh when create object.
-- Add run all sql comand.
-- Format postgresql timestamp show like pgadmin4.
-
-# 3.6.9 2021-4-28
-
-- Support show multi DML execute result.
-- Result view select column without '*'.
-- Disable retry.
-- Fix filter trigger save on result view.
-- Update donate button style.
-
-# 3.6.7 2021-4-2
-
-- Postgresql support config ssl enable option.
-- Support delimiter on codelen.
-- Change ElasticSearch connect host:port to url.
-
-# 3.6.5 2021-3-29
-
-- Support connect to ftp server.
-- Support delete ssh connection.
-- Support show procedure one result.
-- Fix bugs.
-
-# 3.6.0 2021-3-11
-
-- Support connect to database server without exists connection.
-- Support connect to ssh server.
-- Implment some ui feature of postgresql.
-
-# 3.5.6 2021-3-7
-
-- Redis Support add、delete of list、set、hash
-
-# 3.5.5 2021-3-5
-
-- Redis terminal support show some command.
-
-# 3.5.3 2021-2-24
-
-- SqlServer support change connection port.
-- Fix postgresql import sql fail.
-- Sort table by name.
-
-# 3.5.2 2021-2-5
-
-- Fix treeview not refresh when drop node.
-- Result view update and get better update interactive.
-
-# 3.5.0 2021-2-3
-
-- Result View :
-  - Adapt scroll bar when height change.
-  - Move full button position.
-  - Split only when run from editor
-  - Fix elasticSearch query error message not showed
-- Tree Ui :
-  - Support hide userNode, viewNode.
-  - Add some node info as tooltip.
-  - Reduce connection name.
-  - Support remember workspace connection status.
-- Support sql intellisense cross schema.
-- Update server status view.
-- Support show postgresql, sqlserver schemas.
-
-# 3.4.4 2021-1-29
-
-- Support schema with postgresql、sqlserver.
-- Design table view update.
-- Add ui config
-- Support config  connection timeout.
-
-# 3.4.3 2021-1-28
-
-- Fix new table panel cannot execute sql.
-- Speed up data dump and support sqlserver、postgresql.
-- Support disable sql code lens.
-- Support connect to mssql with encrypt disabled.
-
-# 3.3.4 2021-1-27
-
-- Fix 3.3.1 add connection fail.
-- Trim legacy code, better peformance right now.
-- Add full result view icon.
-
-# 3.3.1 2021-1-26
-
-- More implement or table design.
-
-# 3.3.0 2021-1-26
-
-- Support close connection.
-- Add snippet to sql editor.
-- compatible with old vscode version.
-- Fix code len detect comment as sql.
-- Add context menu to result view.
-- Add more chinese content.
-- Init design table.
-
-# 3.2.2 2021/1/25
-
-- Fix redis folder Infinite recursion load bug.
-- Add GUI of index manager view.
-- Implement database struct sync feature.
-- Enhance intetllisense sql.
-
-# 3.2.1 2021/1/23
-
-- Resign connect page.
-- Add sql code lens.
-
-# 3.2.0 2020/1/20
-
-- Migrate elasticsearch node to nosql explorer.
-- Support connect to redis server.
-
-# 3.1.0 2021/1/17
-
-- Support connect to elasticsearch.
-
-# 3.0.0 2021/1/13
-
-- Support connect to postgresql and sqlserver.
-- Reduce resource consumption.
-- Fix cannot edit json column data.
-
-# 2.9.2 2021/1/4
-
-- Better result view border color.
-- Remember page size.
-- Fix sql formatter could not be detect comment correctly.
-- Add i18n of chinese.
-
-# 2.9.0 2020/12/31
-
-- Better update operation interactive.
-- Support auto show total.
-- Show column require hint.
-
-# 2.8.9 2020/12/29
-
-- Support export as csv、json.
-- Enhance result UX.
-
-# 2.8.8 2020/12/28
-
-- Resign result page.
-
-## 2.8.7 2020/12/22
-
-- Resign connect page @donnisnoni.
-- Reduce resource consumption when node change.
-- Support save query as query node.
-
-## 2.8.5 2020/12/6
-
-- Add more feature to view node.
-- Support change column position.
-
-## 2.8 - 2020/11/29
-
-- Support change active database from status bar.
-- Support export view, procedure, function.
-- Fix multi query page database change.
-- Change mysql client to mysql2, now support mysql8.
-
-## 2.7.5 - 2020/11/19
-
-- Migrate status to status bar.
-
-## 2.7.0 -2020/11/9
-
-- Resule view theme follow vscode theme.
-
-## 2.6.0 - 2020/10/20
-
-- Support config connection per workspace.
-- Hide error messages.
-
-## 2.5.7 - 2020/9/21
-
-- Refacotr export panel.
-
-## 2.5.5 - 2020/9/6
-
-- Change update as edit in same view.
-
-## 2.5.0 - 2020/8/17
-
-- Improvement query result render performance.
-
-## 2.4.8 - 2020/8/14
-
-- Fix new panel bug.
-
-## 2.4.7 - 2020/8/13
-
-- Fix overview render bug.
-
-## 2.4.6 - 2020/8/11
-
-- Add more keyword.
-
-## 2.4.5 - 2020/8/10
-
-- Support big number type.
-
-## 2.4.3 - 2020/8/7
-
-- Add database overview.
-- Add diagram design.
-
-## 2.4.2 - 2020/8/5
-
-- Fix limit generator error.
-- Adjust result page height.
-
-## 2.4.0 - 2020/8/3
-
-- Enhance dump performance.
-- Refactor data import.
-
-## 2.3.12 - 2020/8/3
-
-- Auto add limit for select statement.
-
-## 2.3.11 - 2020/8/2
-
-- Hight light active connection.
-- Show more info when open edit panel.
-- Add column type tooltip in result panel.
-- Fix copy fail.
-
-## 2.3.7 - 2020/7/20
-
-- Support config default limit of query.
-
-## 2.3.6 - 2020/7/15
-
-- Support edit date in result view.
-
-## 2.3.5 - 2020/7/14
-
-- Not record repeat history.
-- Support query in new panel.
-- Add count query to content menu of table node.
-- Add truncate database to content menu of database node.
-
-## 2.3.0 - 2020/7/10
-
-- Update result view.
-
-## 2.3.0 - 2020/7/8
-
-- Add dark theme.
-
-## 2.2.8 - 2020/7/7
-
-- Add count button in view.
-
-## 2.2.4~2.2.7
-
-- Fix bugs and adjust result view.
-
-## 2.2.3 - 2020/6/24
-
-- Add copy host feature.
-- Support add name prefix to connection.
-
-## 2.2.0 - 2020/6/13
-
-- Reduce package size.
-- Support export data as xlsx.
-
-## 2.1.4 - 2020/5/20
-
-- Fix connect database by ssh tunnel fail.
-
-## 2.1.0 - 2020/5/14
-
-- Update Query Result Page
-
-## 2.0.1 (2020/5/6)
-
-- Highlight active database.
-- Enhance dashboard.
-- Support open table in new panel.
-
-## 1.9.6 (2020/5/1)
-
-- Fix bugs.
-
-## 1.9.0 - 2020/4/28
-
-- Support SSH tunel.
-- Show comment of column、table on tree view.
-- Suport export table struct.
-
-## 1.8.1 - 2020/4/23
-
-- Connect can specify database.
-- Add mock data feature.
-- Update mysql connect client to newest version.
-- Fix inteliij bugs.
-
-## 1.8.0 - 2020/4/22
-
-- Show template sql in same file.
-- Get connection correctly when connection multi server.
-- Improve UI Interactive.
-- Rollback when batch execute sql occur error.
-- Fix bugs.
-
-## 1.7.32 - 2020/4/18
-
-- Fix legacy bug: connect to same host fail.
-
-## 1.7.31 - 2020/4/17
-
-- Switch active database using open query.
-- support insert or update in any query result page.
-- intellij insert|update code.
-- show comment when edit.
-- fix bugs.
-
-## 1.7.2 - 2020/4/15
-
-- Support copy database、table、column name
-- Support show error message when importing data occur error.
-- Remeber sql history for database
-- Ui improve
-
-## 1.7.1 - 2020/4/11
-
-- Support sort、filter in result page.
-- Enhance sql intelliCode.
-
-## 1.7.0 - 2020/4/10
-
-- Support Insert,Update,Delete in reuslt page.
-- Refactoring event message.
-
-## 1.6.37- 2020/3/20
-
-- Table name inference
-- Sql formatter
-- Record History
-- Import sql file
-- Hover table to get info
-
-## 1.6.36 - 2020/3/19
-
-- Fix many mysql connection error.
-
-## 1.6.35 - 2020/3/18
-
-- get sql divisiton with semicolon on editor
-- fix mysql 8.0 get function|procedure info fail.
-
-## 1.6.2 (2020/3/9)
-
-- Beautify query result page.
-
-## 1.6.0 (2020/3/8)
-
-- Fix refresh not update treeview
-- Support operate user、trigger、view、procedure、function
-
-## 1.5.4 (2020/3/7)
-
-- Fix change database fail
-- Query result page beautify
-- Sql assistant enhance
-
-## 1.5.3 - 2020/2/22
-
-- Focus query result panel when query
-
-## 0.3.0 (2018-03-12)
-
-* Show query result as HTML table
-
-## 0.2.3 (2018-02-23)
-
-* Add support for executing selected query
-
-## 0.2.2 (2017-12-31)
-
-* [#10](https://github.com/formulahendry/vscode-mysql/issues/10): Add key bindings for 'Run MySQL Query'
-
-## 0.2.1 (2017-12-05)
-
-* Keep original properties when creating connection
-* Close the connection after query
-
-## 0.2.0 (2017-12-04)
-
-* Support SSL connection
-
-## 0.1.1 (2017-12-03)
-
-* List columns
-
-## 0.1.0 (2017-11-30)
-
-* Support multiple statement queries
-
-## 0.0.3 (2017-11-26)
-
-* Activate extension when running MySQL query
-
-## 0.0.2 (2017-11-24)
-
-* Better output format: display output as table
-* [#2](https://github.com/formulahendry/vscode-mysql/issues/2): Add option to set maximum table count, and increase the dafault count
-
-## 0.0.1 (2017-11-22)
-
-* Initial Release
+[0.1.0]: https://github.com/jjb4150/mysql-custom/releases/tag/v0.1.0
