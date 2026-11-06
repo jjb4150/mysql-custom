@@ -1,120 +1,173 @@
+<div align="center">
+
 # MySQL Custom
 
-A VS Code extension for **MySQL / MariaDB**, focused on one thing: making very large, very complex SQL files comfortable to read, navigate, and edit.
+**A MySQL / MariaDB client for VS Code, built for very large and very complex SQL.**
 
-> This is a derivative work based on [cweijan/vscode-database-client](https://github.com/cweijan/vscode-database-client) **v3.9.8** (MIT licensed, Copyright 2019-2021 Weijan Chen). See [License](#license).
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.60-007ACC?logo=visualstudiocode)](https://code.visualstudio.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
+
+[English](README.md) · [简体中文](README_CN.md)
+
+<img src="docs/images/screenshot-en-dark.png" alt="Result grid" width="100%">
+
+</div>
 
 ---
 
 ## Why this exists
 
-The upstream project went closed-source from v4.7.0. This build starts from the last MIT release (3.9.8) — which has **no paid gating** — and adds a set of targeted improvements driven by a real codebase:
+The upstream project went closed-source from v4.7.0. This build starts from the last MIT release ([cweijan/vscode-database-client](https://github.com/cweijan/vscode-database-client) **v3.9.8**, no paid gating) and adds targeted improvements driven by a real production codebase:
 
-- **1,093 MyBatis Mapper.xml files, 3,649 SQL statements**
-- Average length **568 characters**; longest **19,419 characters** with **44 JOINs**; max **64 JOINs** in one statement
-- ~1/3 of statements use JOIN, 20.4% use GROUP BY, 8.1% use derived tables, 31 use CTEs (13 recursive), 56 use window functions
+| | |
+|---|---|
+| Mapper files | **1,093** MyBatis XML |
+| SQL statements | **3,649** |
+| Average length | **568** characters |
+| Longest statement | **19,419** characters, **44** JOINs |
+| Max JOINs in one statement | **64** |
+| JOIN usage | ~1/3 of statements |
+| GROUP BY | 20.4% |
+| Derived tables | 8.1% |
+| CTEs | 31 (13 recursive) |
+| Window functions | 56 |
 
-Everything below was tuned against that workload, not against toy queries.
+Everything below was tuned against that workload — not against toy queries.
 
-## Features
+## Highlights
+
+<table>
+<tr><td width="50%" valign="top">
 
 ### SQL editor
 
-| Feature | Notes |
-|---|---|
-| **IntelliSense that survives long files** | Works at line 600+ of a large file, not just at the top |
-| Table completion after `from` / `join` / `update` | ✅ |
-| Column completion for `where a.`, `select a.`, `on a.` | ✅ (upstream returned nothing here) |
-| Column completion without an alias | Falls back to all tables in the current statement |
-| Auto-qualified insert (`a.store_name`) | When more than one table is in scope |
-| Fuzzy matching | `ai` matches `g_product_ai` |
-| Chinese table / column names | ✅ |
-| CTE aliases (`WITH x AS (...)`) | Recursive CTEs use explicit column list; non-recursive derive from SELECT |
-| Derived table aliases (`FROM (...) t1`) | Columns inferred from the inner SELECT |
-| Keyword & function completion | ~170 keywords, 130+ functions; functions only match when followed by `(` |
-| Ranking | column (0) > table (1) > function (2) > keyword (3) |
-| Long-JOIN guard | Caps at 12 tables, concurrency 4 |
+- **Completion that survives long files** — works at line 600+, not just the top
+- Column completion after `where a.` / `select a.` / `on a.`
+- CTE and derived-table alias resolution
+- Chinese table and column names
+- Fuzzy matching: `ai` → `g_product_ai`
+- 130+ functions, only matched when followed by `(`
+
+</td><td width="50%" valign="top">
 
 ### Navigation
 
-- **Ctrl+Click a table** → opens its DDL
-- **Ctrl+Click an alias** → resolves to the real table
-- **Ctrl+Click `alias.column`** → opens the DDL and jumps to that column's line
-- **Ctrl+Click a bare column** → searches every table in the statement
+- `Ctrl`+click a **table** → opens its DDL
+- `Ctrl`+click an **alias** → resolves to the real table
+- `Ctrl`+click `alias.column` → DDL at that column's line
+- `Ctrl`+click a **bare column** → searches every table in scope
 - Case-insensitive
+
+</td></tr>
+<tr><td valign="top">
 
 ### Result grid
 
-- **Excel-style selection**: click, drag, Shift to extend, `Ctrl` to add disjoint cells, `Ctrl+A`, `Ctrl+C` as TSV
-- **Double-click a column header** to select the whole column; **Ctrl+double-click** another header to add it to the selection (disjoint columns, intermediate columns stay unselected)
-- Double-click a cell to edit; `Ctrl+S` to save
-- Column headers show **field name + comment + type**, with PK and NOT NULL markers
-- Long values get a viewer with pretty-printed JSON
-- Per-connection default `LIMIT` (auto-paging), on-demand `COUNT`
+- **Excel-style selection**: drag, `Shift`-extend, `Ctrl` for disjoint cells
+- **`Ctrl`+double-click a column header** to add it to the selection
+- Double-click a cell to edit in place; `Ctrl+S` to save
+- Header shows field name + comment + type, with PK / NOT NULL markers
+- Long values open in a viewer with pretty-printed JSON
+
+</td><td valign="top">
 
 ### Execution
 
 - **Multi-statement scripts run statement by statement**
-  - Each statement gets its own result tab
-  - Execution stops at the first error, matching the `mysql` CLI; results for statements that already succeeded are kept
-  - Failures show a red line at the bottom of the result panel, a squiggle in the SQL editor, and a **jump to error line** link
-  - On success: **nothing is shown** — the data just appears
-- `DELIMITER` is honoured, so `CREATE PROCEDURE ... BEGIN ... END` is not split apart
-- Semicolons inside strings, backticks, and all three MySQL comment styles are ignored by the splitter
-- Missing trailing semicolons are handled conservatively (four guard rules to avoid false splits)
+  - One tab per statement
+  - Stops at the first error, like the `mysql` CLI — results already produced are kept
+  - Errors show a red rule, a squiggle at the exact editor line, and a jump link
+  - On success: nothing is shown, the data just appears
+- `DELIMITER`-aware, so stored procedures aren't split apart
 
-### SQL highlighting
+</td></tr>
+</table>
 
-The syntax definition was rewritten from a flat keyword list into structural scopes:
+## Screenshots
 
-| Element | Scope |
-|---|---|
-| Table names (`CREATE TABLE` / `FROM` / `JOIN` / `UPDATE` / `ALTER TABLE`) | `entity.name.type.sql` |
-| Column names, aliases, fields | `entity.name.variable.sql` |
-| SQL keywords | `keyword.control.sql` |
-| Data types | `storage.modifier.sql` |
-| DDL constraints (`NOT NULL` / `DEFAULT` / `COMMENT` / `KEY` / `ENGINE` / `CHARSET` …) | `entity.name.label.sql` |
-| Functions | `entity.name.function.sql` (130+, only when followed by `(`) |
-| Comments | `--`, `#`, `/* */` |
+<table>
+<tr>
+<td width="50%"><img src="docs/images/screenshot-en-dark.png" alt="Dark theme"><br><sub>Dark</sub></td>
+<td width="50%"><img src="docs/images/screenshot-en-light.png" alt="Light theme"><br><sub>Light</sub></td>
+</tr>
+</table>
 
-Validated against six built-in themes with a multi-theme colour matrix: **0% red coverage** under `Dark 2026` / `Dark Modern` / `Light 2026` / `Light Modern`. `keyword.*` and `storage.type.*` are deliberately avoided because they render red under the default dark theme in VS Code 1.145.
+## Installation
 
-## Supported databases
+### From a Release (works today)
 
-**MySQL / MariaDB** is the supported target. `PostgreSQL`, `SQL Server`, and `SQLite` connection code is retained for internal reasons but is **not the focus** and not tested as thoroughly.
+1. Open [Releases](https://github.com/jjb4150/mysql-custom/releases)
+2. Download the latest `.vsix`
+3. In VS Code: `Ctrl+Shift+P` → **Extensions: Install from VSIX...**
 
-No Redis, Elasticsearch, MongoDB, FTP, or SSH-client features. (SSH **tunnels** for database connections are supported.)
+Or from a terminal:
+
+```bash
+code --install-extension mysql-custom-0.1.0.vsix
+```
+
+### From source
+
+```bash
+git clone https://github.com/jjb4150/mysql-custom.git
+cd mysql-custom
+npm install
+npx tsc --noEmit
+npx webpack --mode=production
+npx @vscode/vsce package --no-dependencies
+code --install-extension mysql-custom-0.1.0.vsix
+```
 
 ## Getting started
 
-1. Open the **Database** panel in the activity bar.
-2. Click **+**, pick **MySQL**, fill in host / port / user / password.
-3. Use **SSH Tunnel** if the database is only reachable through a bastion.
-4. Click a table to browse it, or **Open Query** to write SQL bound to that connection.
+1. Open the **Database** panel in the activity bar
+2. Click **+**, pick **MySQL**, fill in host / port / user / password
+3. Turn on **SSH Tunnel** if the database is only reachable through a bastion
+4. Click a table to browse it, or **Open Query** to write SQL bound to that connection
 
-## Configuration
+## SQL highlighting
 
-Common settings (all prefixed `database-client.` for compatibility with the upstream extension):
+The grammar was rewritten from a flat keyword list into structural scopes, so table names, column names, data types and DDL constraints are visually distinct.
 
-| Setting | Default | What it does |
-|---|---|---|
-| `database-client.defaultSelectLimit` | `100` | Auto-appended `LIMIT` for first query |
-| `database-client.autoPagingSQL` | `true` | Enable auto-paging |
-| `database-client.resultBelowEditor` | `true` | Result panel below the editor instead of a side split |
-| `database-client.showColumnComment` | `true` | Show column comments in headers |
+| Element | Scope |
+|---|---|
+| Table names | `entity.name.type.sql` |
+| Columns, aliases, fields | `entity.name.variable.sql` |
+| Keywords | `keyword.control.sql` |
+| Data types | `storage.modifier.sql` |
+| DDL constraints | `entity.name.label.sql` |
+| Functions | `entity.name.function.sql` |
+| Comments | `--`, `#`, `/* */` |
+
+Validated against six built-in themes with a colour matrix. `keyword.*` and `storage.type.*` are deliberately avoided — they render red under the default dark theme in VS Code 1.145.
+
+## Language
+
+The UI follows your VS Code display language. English and Simplified Chinese are both complete. Command palette entries use the standard VS Code `nls` mechanism.
+
+## Supported databases
+
+**MySQL / MariaDB** is the supported target. PostgreSQL, SQL Server and SQLite connection code is retained but is not the focus and not tested as thoroughly.
+
+No Redis, Elasticsearch, MongoDB, FTP or SSH-client features. SSH **tunnels** for database connections are supported.
 
 ## Privacy
 
-**No telemetry. No network calls except to the databases you connect to.**
+**No telemetry. No network calls other than to the databases you connect to.**
 
-The upstream README advertised anonymous usage reporting. That code is not present in this build, and that claim has been removed. There is no `database-client.telemetry.*` behaviour to opt out of because there is nothing collecting.
+The upstream README advertised anonymous usage reporting. That code is not present here, and the claim has been removed.
 
 ## Known limitations
 
 - **AnalyticDB** connections fail with `[13000] Illegal database ''`. ADB appears to require an explicit database name at connect time; unverified.
-- Excel export of very large tables can still run out of memory (`node-xlsx` must materialise the whole sheet).
-- Column-header double-click-to-autofit (as in AG Grid) is not implemented.
-- No connection pooling — `USE` semantics conflict with it.
+- Excel export of very large tables can run out of memory (`node-xlsx` must materialise the whole sheet).
+- Column-header double-click-to-autofit is not implemented.
+- No connection pooling — conflicts with `USE` semantics.
+
+## Contributing
+
+Issues and pull requests are welcome at [github.com/jjb4150/mysql-custom](https://github.com/jjb4150/mysql-custom/issues). See [docs/PUBLISH.md](docs/PUBLISH.md) for the release process.
 
 ## License
 

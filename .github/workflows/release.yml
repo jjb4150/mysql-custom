@@ -27,7 +27,8 @@ on:
         default: true
 
 permissions:
-  contents: read
+  # 必须是 write：创建 Release、上传 vsix 附件都需要
+  contents: write
   # Trusted Publishing 需要 OIDC 换取 Marketplace 凭据，必须开这个
   id-token: write
 
@@ -78,13 +79,21 @@ jobs:
           if-no-files-found: error
 
       # ---------- 发布到 VS Code Marketplace ----------
+      #
+      # continue-on-error: 市场发布失败不应连累 GitHub Release。
+      # 首次发布前需要先在 publisher 后台建 Trusted Publishing 策略，
+      # 没建时这一步必然失败；但用户仍然应该能从 Releases 下载 vsix 手动安装。
+      # 失败状态在 workflow 里可见，不会被静默吞掉。
 
       - name: Publish to VS Code Marketplace (Trusted Publishing)
         if: ${{ env.VS_MARKETPLACE_TRUSTED_PUBLISHING == 'true' && github.event_name == 'push' }}
+        continue-on-error: true
+        id: publish-tp
         run: npx --yes @vscode/vsce@2.32.0 publish --oidc --packagePath dist/*.vsix
 
       - name: Publish to VS Code Marketplace (PAT)
         if: ${{ env.VS_MARKETPLACE_TRUSTED_PUBLISHING != 'true' && github.event_name == 'push' }}
+        continue-on-error: true
         run: npx --yes @vscode/vsce@2.32.0 publish --packagePath dist/*.vsix
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
@@ -96,3 +105,46 @@ jobs:
         run: npx --yes ovsx publish dist/*.vsix -p "$OVSX_PAT"
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+      # ---------- 创建 GitHub Release ----------
+      #
+      # 这一步是为了让用户能直接从 Releases 页面下载 vsix 手动安装。
+      # 之前只有 upload-artifact，那是 CI 内部构建产物、会自动过期，
+      # 不会出现在 Releases 页面上，所以用户看不到任何下载入口。
+      #
+      # 放在发布之后：市场发布失败时不挂 Release，避免出现「能下载但市场没有」
+      # 的错位状态。如果想把 vsix 先挂出来（发布失败也无所谓），把这一步上移即可。
+      - name: Create GitHub Release
+        if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.vsix
+          generate_release_notes: true
+          name: ${{ github.ref_name }}
+          body: |
+            ## MySQL Custom ${{ steps.ver.outputs.version }}
+
+            一个专注 MySQL / MariaDB 的 VS Code 扩展，针对超长复杂 SQL 做了专项优化。
+
+            ### 安装方式
+
+            **方式一：命令行（推荐）**
+
+            ```bash
+            code --install-extension ${{ github.event.repository.name }}-${{ steps.ver.outputs.version }}.vsix
+            ```
+
+            **方式二：VS Code 界面**
+
+            1. 下载下面的 `.vsix` 文件
+            2. VS Code 里按 `Ctrl+Shift+P`
+            3. 输入 `Extensions: Install from VSIX...` 并选择刚下载的文件
+
+            ### 说明
+
+            - 本版本基于 [cweijan/vscode-database-client](https://github.com/cweijan/vscode-database-client) v3.9.8 (MIT) 二次开发
+            - 若已上架 VS Code Marketplace，也可以直接在扩展市场搜索安装
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
