@@ -1,0 +1,98 @@
+name: Release
+
+# 发布流程：
+#   1. 打 tag:  git tag v1.0.0 && git push origin v1.0.0
+#   2. 本 workflow 自动构建、打包、发布到 VS Code Marketplace 和 Open VSX
+#
+# 两种 marketplace 认证方式，按你配置的来（见 docs/PUBLISH.md）：
+#
+#   A) Trusted Publishing（推荐，无需任何 secret）
+#      在 marketplace.visualstudio.com/manage 的 publisher 页 → Trusted Publishing
+#      建一条策略，Repository owner / Repository / Workflow 填本仓库与 release.yml。
+#      然后下面的 VS_MARKETPLACE_TRUSTED_PUBLISHING 保持为 true 即可。
+#
+#   B) PAT（传统方式）
+#      在仓库 Settings → Secrets 里配置 VSCE_PAT 和 OVSX_PAT，
+#      并把 VS_MARKETPLACE_TRUSTED_PUBLISHING 改成 false。
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "只构建打包，不发布"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  # Trusted Publishing 需要 OIDC 换取 Marketplace 凭据，必须开这个
+  id-token: write
+
+env:
+  # 改成 true 就走 Trusted Publishing，不需要任何 secret
+  VS_MARKETPLACE_TRUSTED_PUBLISHING: "true"
+  # 是否同时发布到 Open VSX（需要 OVSX_PAT）
+  PUBLISH_TO_OPENVSX: "false"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # 上游没有提交 package-lock.json（在 .gitignore 里），因此用 npm install。
+      # 如果想锁定依赖树，先删掉 .gitignore 里的 package-lock.json 再本地生成并提交。
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npx webpack --mode=production
+
+      - name: Read version
+        id: ver
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Package VSIX
+        run: |
+          npx --yes @vscode/vsce@2.32.0 package \
+            --no-dependencies \
+            --allow-missing-repository \
+            -o "dist/${{ github.event.repository.name }}-${{ steps.ver.outputs.version }}.vsix"
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: dist/*.vsix
+          if-no-files-found: error
+
+      # ---------- 发布到 VS Code Marketplace ----------
+
+      - name: Publish to VS Code Marketplace (Trusted Publishing)
+        if: ${{ env.VS_MARKETPLACE_TRUSTED_PUBLISHING == 'true' && github.event_name == 'push' }}
+        run: npx --yes @vscode/vsce@2.32.0 publish --oidc --packagePath dist/*.vsix
+
+      - name: Publish to VS Code Marketplace (PAT)
+        if: ${{ env.VS_MARKETPLACE_TRUSTED_PUBLISHING != 'true' && github.event_name == 'push' }}
+        run: npx --yes @vscode/vsce@2.32.0 publish --packagePath dist/*.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      # ---------- 发布到 Open VSX ----------
+
+      - name: Publish to Open VSX
+        if: ${{ env.PUBLISH_TO_OPENVSX == 'true' && github.event_name == 'push' }}
+        run: npx --yes ovsx publish dist/*.vsix -p "$OVSX_PAT"
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
