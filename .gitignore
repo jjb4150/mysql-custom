@@ -3,7 +3,8 @@ node_modules
 .idea/
 .vscode-test/
 *.vsix
-package-lock.json
+# package-lock.json 必须提交：GitHub Actions 的 setup-node 用 cache: npm 时
+# 强制要求 lock 文件存在，且有了 lock 才能用 npm ci 做可复现构建。
 .prettierrc
 yarn.lock
 

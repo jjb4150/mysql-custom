@@ -49,10 +49,10 @@ jobs:
           node-version: 20
           cache: npm
 
-      # 上游没有提交 package-lock.json（在 .gitignore 里），因此用 npm install。
-      # 如果想锁定依赖树，先删掉 .gitignore 里的 package-lock.json 再本地生成并提交。
+      # package-lock.json 已提交，用 npm ci 做可复现安装。
+      # 之前用 npm install 且没有 lock 文件，setup-node 的 cache: npm 会直接失败。
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Type check
         run: npx tsc --noEmit
