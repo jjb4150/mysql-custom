@@ -901,7 +901,7 @@
     "build": "webpack --progress --mode=production",
     "lib": "webpack --config webpack.config.lib.js --progress -p",
     "publich": "vsce publish",
-    "vscode:prepublish": "npm run build"
+    "vscode:prepublish": "webpack --mode=production"
   },
   "devDependencies": {
     "@antv/g2": "^4.0.9",

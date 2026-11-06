@@ -54,11 +54,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      # 注意：不要再单独跑 webpack。
+      # package.json 里有 "vscode:prepublish": "npm run build"，
+      # vsce package / vsce publish 会自动触发它。之前 workflow 先手动 build 一次、
+      # 然后 vsce 又 build 一次，在 CI 上是两次完整 webpack 构建，
+      # Package VSIX 这一步因此失败。只保留 tsc 做类型门禁即可。
       - name: Type check
         run: npx tsc --noEmit
-
-      - name: Build
-        run: npx webpack --mode=production
 
       - name: Read version
         id: ver
@@ -66,6 +68,8 @@ jobs:
 
       - name: Package VSIX
         run: |
+          # 显式建目录：vsce 不会自动创建 -o 指定的父目录，CI 上 dist/ 并不存在
+          mkdir -p dist
           npx --yes @vscode/vsce@2.32.0 package \
             --no-dependencies \
             --allow-missing-repository \
