@@ -16,7 +16,7 @@
         <!-- 字段名本身可被单击选中、直接 Ctrl+C 复制 -->
         <span class="field-header__name" :title="name">{{ name }}</span>
         <span v-if="isPrimaryKey" class="field-header__pk">PK</span>
-        <span v-if="isRequired" class="field-header__required" title="非空"></span>
+        <span v-if="isRequired" class="field-header__required" :title="$t('cell.required')"></span>
       </div>
       <div v-if="subLabel"
         class="field-header__sub"
@@ -69,8 +69,8 @@ export default {
       if (meta) {
         if (meta.comment) parts.push(meta.comment);
         if (meta.type) parts.push(meta.type);
-        if (meta.key === "PRI") parts.push("PRIMARY KEY");
-        if (meta.nullable) parts.push(meta.nullable === "YES" ? "NULL" : "NOT NULL");
+        if (meta.key === "PRI") parts.push(this.$t("header.pk"));
+        if (meta.nullable) parts.push(meta.nullable === "YES" ? this.$t("header.nullable") : this.$t("header.notNullable"));
       }
       return parts.join("  ·  ");
     },

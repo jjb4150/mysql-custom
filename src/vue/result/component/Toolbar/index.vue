@@ -1,37 +1,37 @@
 <template>
   <div class="toolbar">
     <div class="toolbar__row">
-      <el-button v-if="showFullBtn" @click="()=>$emit('sendToVscode','full')" type="primary" title="Full Result View" icon="el-icon-rank" size="mini" circle>
+      <el-button v-if="showFullBtn" @click="()=>$emit('sendToVscode','full')" type="primary" :title="$t('btn.full')" icon="el-icon-rank" size="mini" circle>
       </el-button>
-      <el-input v-model="searchInput" size="mini" placeholder="搜索数据（高亮匹配）" style="width:200px" :clearable="true" @keyup.enter.native="searchNext" />
+      <el-input v-model="searchInput" size="mini" :placeholder="$t('search.placeholder')" style="width:200px" :clearable="true" @keyup.enter.native="searchNext" />
       <template v-if="searchInput">
         <span class="search-counter">{{ searchMatch }}</span>
-        <el-button icon="el-icon-arrow-up" size="mini" title="上一项" @click="$emit('searchNav','prev')"></el-button>
-        <el-button icon="el-icon-arrow-down" size="mini" title="下一项" @click="$emit('searchNav','next')"></el-button>
+        <el-button icon="el-icon-arrow-up" size="mini" :title="$t('search.prev')" @click="$emit('searchNav','prev')"></el-button>
+        <el-button icon="el-icon-arrow-down" size="mini" :title="$t('search.next')" @click="$emit('searchNav','next')"></el-button>
       </template>
-      <el-button size="mini" type="primary" icon="el-icon-download" @click="$emit('export');" title="Export">Export</el-button>
-      <el-button size="mini" :type="showAllMode ? 'success' : 'default'" :title="showAllMode ? '恢复分页' : '加载全部数据（不分页）'" @click="$emit('toggleShowAll')">
-        {{ showAllMode ? '分页' : '全部' }}
+      <el-button size="mini" type="primary" icon="el-icon-download" @click="$emit('export');" :title="$t('btn.export')">{{ $t('btn.export') }}</el-button>
+      <el-button size="mini" :type="showAllMode ? 'success' : 'default'" :title="showAllMode ? $t('btn.restorePage') : $t('btn.loadAll')" @click="$emit('toggleShowAll')">
+        {{ showAllMode ? $t('btn.page') : $t('btn.all') }}
       </el-button>
-      <el-button icon="el-icon-circle-plus-outline" @click="$emit('insert')" title="插入新行"></el-button>
-      <el-button icon="el-icon-delete" style="color:#f56c6c" @click="$emit('deleteConfirm');" title="删除选中行"></el-button>
-      <el-button icon="el-icon-refresh-right" title="重新执行当前查询（刷新数据）" @click="$emit('run');"></el-button>
+      <el-button icon="el-icon-circle-plus-outline" @click="$emit('insert')" :title="$t('btn.insert')"></el-button>
+      <el-button icon="el-icon-delete" class="toolbar__danger" @click="$emit('deleteConfirm');" :title="$t('btn.delete')"></el-button>
+      <el-button icon="el-icon-refresh-right" :title="$t('btn.refresh')" @click="$emit('run');"></el-button>
       <!-- 有未保存修改时才出现，明确告诉用户改了什么、怎么提交 -->
       <el-button v-if="dirtyCount > 0" size="mini" type="warning" icon="el-icon-check"
-        :title="'保存 ' + dirtyCount + ' 行的修改（Ctrl+S）'"
+        :title="$t('btn.saveTitle', { n: dirtyCount })"
         @click="$emit('saveChanges')">
-        保存 ({{ dirtyCount }})
+        {{ $t('btn.save') }} ({{ dirtyCount }})
       </el-button>
-      <el-button v-if="dirtyCount > 0" size="mini" icon="el-icon-close" title="放弃所有未保存的修改"
+      <el-button v-if="dirtyCount > 0" size="mini" icon="el-icon-close" :title="$t('btn.discardTitle')"
         @click="$emit('discardChanges')">
-        放弃
+        {{ $t('btn.discard') }}
       </el-button>
 
       <span class="toolbar__spacer"></span>
 
-      <span class="toolbar__cost">Cost: {{costTime}}ms</span>
-      <el-select v-if="!showAllMode" v-model="pageSizeLocal" size="mini" class="toolbar__pagesize" @change="changePageSize" title="每页行数">
-        <el-option v-for="s in pageSizeOptions" :key="s" :label="s + ' 行/页'" :value="s"></el-option>
+      <span class="toolbar__cost">{{ $t('cost', { ms: costTime }) }}</span>
+      <el-select v-if="!showAllMode" v-model="pageSizeLocal" size="mini" class="toolbar__pagesize" @change="changePageSize" :title="$t('rowsPerPage')">
+        <el-option v-for="s in pageSizeOptions" :key="s" :label="$t('pageSize', { n: s })" :value="s"></el-option>
       </el-select>
       <el-pagination v-if="!showAllMode"
         @current-change="page=>$emit('changePage',page,true)"
@@ -43,12 +43,12 @@
         :layout="page.total!=null?'prev, pager, next, jumper, total':'prev, next'"
         :total="page.total">
       </el-pagination>
-      <span v-else class="toolbar__total-count">共 {{ page.total != null ? page.total : '?' }} 行（全部加载）</span>
+      <span v-else class="toolbar__total-count">{{ $t('total.count', { n: page.total != null ? page.total : '?' }) }}</span>
       <!-- 总数按需统计：点击后才向数据库发起 count，避免大表自动慢查询 -->
-      <el-button v-if="page.total == null && page.totalPending" size="mini" type="text" class="toolbar__total" title="点击统计总行数" @click="$emit('requestTotal')">
-        Total ?
+      <el-button v-if="page.total == null && page.totalPending" size="mini" type="text" class="toolbar__total" :title="$t('total.requestTitle')" @click="$emit('requestTotal')">
+        {{ $t('total.request') }}
       </el-button>
-      <span v-else-if="page.total == null" class="total-unknown" title="该查询不统计总数">Total -</span>
+      <span v-else-if="page.total == null" class="total-unknown" :title="$t('total.unknownTitle')">{{ $t('total.unknown') }}</span>
     </div>
   </div>
 </template>
@@ -66,7 +66,7 @@ export default {
   computed: {
     searchMatch() {
       const total = this.searchTotal || 0;
-      if (!total) return "无匹配";
+      if (!total) return this.$t("search.noMatch");
       return `${(this.searchIndex || 0) + 1}/${total}`;
     },
   },
@@ -113,25 +113,64 @@ export default {
 .toolbar__row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  /* 不用 gap：Element 的 .el-button 自带 margin-left，
+     两者叠加会让按钮间距翻倍（截图里按钮之间空得能塞下人）。
+     间距统一交给下面的 margin-left 覆盖控制。 */
+  gap: 0;
   flex-wrap: nowrap;
   overflow: hidden;
   font-size: var(--mc-fs);
   line-height: 1;
 }
 
-/* 工具栏内所有按钮统一小巧尺寸 */
-.toolbar__row ::v-deep .el-button--mini {
+/* 工具栏内所有按钮统一小巧尺寸。
+ * 用 ::v-deep 精确限定在 .toolbar__row 内，不再靠「scoped 里不写深度选择器
+ * 从而泄漏成全局规则」的旧 hack —— 那种写法会连带影响结果页之外所有按钮。 */
+.toolbar__row ::v-deep .el-button {
   padding: 5px 9px;
   font-size: var(--mc-fs);
   line-height: 1;
   height: 24px;
+  min-height: 24px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border-radius: var(--mc-radius-sm);
+  /* Element 默认 margin-left 会让按钮与前面的元素之间出现一个不规则大缝，
+     工具栏已自行排布间距，这里统一成 6px。 */
+  margin-left: 6px;
   transition: background var(--mc-dur) var(--mc-ease),
               border-color var(--mc-dur) var(--mc-ease),
               color var(--mc-dur) var(--mc-ease);
+}
+
+/* Element 自带的 .el-button+.el-button 会再加 margin-left:10px，
+ * 与上面的 6px 冲突，导致相邻按钮间距忽大忽小，这里一并压掉。 */
+.toolbar__row ::v-deep .el-button + .el-button {
+  margin-left: 6px;
+}
+
+/* 第一个按钮不要左边距 */
+.toolbar__row ::v-deep .el-button:first-child {
+  margin-left: 0;
+}
+
+/* 纯图标按钮：方形、无边框、透明底。
+ * 原来靠全局泄漏的 .el-button--default{padding:0;border:none;font-size:19px}
+ * 实现，那条规则同时污染了结果页之外所有默认按钮；这里改成精确版本。 */
+.toolbar__row ::v-deep .el-button--default {
+  width: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--mc-fg);
+  font-size: 15px;
+}
+
+.toolbar__row ::v-deep .el-button--default:hover {
+  color: var(--mc-fg);
+  border-color: var(--mc-accent);
+  background: var(--mc-hover);
 }
 
 .toolbar__row ::v-deep .el-button--mini i {
@@ -139,8 +178,10 @@ export default {
   margin-right: 3px;
 }
 
-.toolbar__row ::v-deep .el-button--mini.el-button--icon-only i {
+.toolbar__row ::v-deep .el-button--mini.el-button--icon-only i,
+.toolbar__row ::v-deep .el-button--default i {
   margin-right: 0;
+  font-size: 15px;
 }
 
 .toolbar__spacer {
@@ -201,6 +242,17 @@ export default {
   color: var(--mc-fg);
   border-color: var(--mc-accent);
   background: var(--mc-hover);
+}
+
+/* 删除按钮：悬停才显红，平时保持中性，避免整条工具栏到处是警示色 */
+.toolbar__row ::v-deep .toolbar__danger {
+  color: var(--mc-fg);
+}
+
+.toolbar__row ::v-deep .toolbar__danger:hover {
+  color: var(--mc-danger);
+  border-color: var(--mc-danger);
+  background: var(--mc-danger-bg);
 }
 </style>
 

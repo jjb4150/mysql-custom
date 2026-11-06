@@ -1,7 +1,7 @@
 <template>
   <div>
     <template v-if="scope.row.isFilter">
-      <el-input class='edit-filter' v-model="filterObj[scope.column.title]" :clearable='true' placeholder="筛选" @clear="filter(null,scope.column.title)" @keyup.enter.native="filter($event,scope.column.title)">
+      <el-input class='edit-filter' v-model="filterObj[scope.column.title]" :clearable='true' :placeholder="$t('filter.placeholder')" @clear="filter(null,scope.column.title)" @keyup.enter.native="filter($event,scope.column.title)">
       </el-input>
     </template>
     <template v-else-if="!scope.row.isFilter && result.dbType=='ElasticSearch'">
@@ -39,7 +39,7 @@
             v-if="needExpand"
             class="cell-expand"
             :class="{ 'cell-expand--json': isJsonValue }"
-            :title="isJsonValue ? '查看格式化 JSON' : '查看完整内容'"
+            :title="isJsonValue ? $t('cell.viewJson') : $t('cell.viewFull')"
             @mousedown.stop.prevent
             @click.stop.prevent="openViewer"
           >+</span>
@@ -461,35 +461,35 @@ export default {
       this.$contextmenu({
         items: [
           {
-            label: `复制单元格`,
+            label: this.$t('ctx.copyCell'),
             onClick: () => this.$emit("sendToVscode", "copy", value),
             divided: true,
           },
           {
-            label: `复制整行`,
+            label: this.$t('ctx.copyRow'),
             onClick: () => this.$emit("copyRow", row),
           },
           {
-            label: `复制整行（含表头）`,
+            label: this.$t('ctx.copyRowHeader'),
             onClick: () => this.$emit("copyRow", row, true),
           },
           {
-            label: `复制整列「${name}」`,
+            label: this.$t('ctx.copyCol', { name }),
             onClick: () => this.$emit("copyColumn", name, false),
           },
           {
-            label: `复制整列（含表头）「${name}」`,
+            label: this.$t('ctx.copyColHeader', { name }),
             onClick: () => this.$emit("copyColumn", name, true),
             divided: true,
           },
           {
-            label: `编辑本行`,
+            label: this.$t('ctx.editRow'),
             onClick: () => {
               this.$emit("openEditor", row, false);
             },
           },
           {
-            label: `复制数据插入新行`,
+            label: this.$t('ctx.insertCopy'),
             onClick: () => {
               this.$emit("openEditor", row, true);
             },
@@ -502,7 +502,7 @@ export default {
             },
           },
           {
-            label: "按条件筛选",
+            label: this.$t('filter.byCondition'),
             divided: true,
             children: [
               {

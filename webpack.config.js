@@ -81,7 +81,17 @@ module.exports = [
                 'process.env': JSON.stringify({}),
             }),
             new HtmlWebpackPlugin({ inject: true, template: './public/index.html', chunks: ['app'], filename: 'webview/app.html' }),
-            new HtmlWebpackPlugin({ inject: true, templateContent: `<head><script src="js/oldCompatible.js"></script></head><body> <div id="app"></div> </body>`, chunks: ['query'], filename: 'webview/result.html' }),
+            // result.html 之前没有 <meta charset> 也没有 <html lang>：
+            //  - 缺 charset 时，浏览器可能按系统码页猜编码，中文有乱码风险
+            //  - 缺 lang 时，脚本无法判断界面语言（i18n 需要它）
+            // VS Code 的 webview 会把 document.documentElement.lang 设成用户语言，
+            // 但我们要保证初始值合理，所以先写死，运行时再按 vscode.env.language 覆盖。
+            new HtmlWebpackPlugin({
+                inject: true,
+                templateContent: `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script src="js/oldCompatible.js"></script></head><body><div id="app"></div></body></html>`,
+                chunks: ['query'],
+                filename: 'webview/result.html'
+            }),
             new CopyWebpackPlugin({
                 patterns: [{ from: 'public', to: './webview' }]
             }),

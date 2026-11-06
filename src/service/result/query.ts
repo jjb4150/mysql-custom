@@ -40,6 +40,17 @@ export class QueryPage {
             openBelow: Global.getConfig<boolean>(ConfigKey.RESULT_BELOW_EDITOR, true),
             path: 'result', title: 'Query', type,
             iconPath: Global.getExtPath("resources", "icon", "query.svg"),
+            // 把 VS Code 当前语言注入 webview。
+            // webview 侧无法访问 vscode.env，只能靠这里下发；
+            // 同时把 <html lang> 改写掉，i18n 模块优先读 window.__MC_LANG__，
+            // 读不到再退回 document.documentElement.lang。
+            handleHtml: (html: string) => {
+                const lang = vscode.env.language || 'en';
+                const injected = `<script>window.__MC_LANG__=${JSON.stringify(lang)};</script>`;
+                return html
+                    .replace(/<html[^>]*>/i, `<html lang="${lang}">`)
+                    .replace(/<head>/i, `<head>${injected}`);
+            },
             eventHandler: async (handler) => {
                 handler.on("init", () => {
                     // 单面板模式下标题固定，表名放到面板内的 tab 上显示，

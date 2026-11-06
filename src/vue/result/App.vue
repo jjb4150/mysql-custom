@@ -5,7 +5,7 @@
       <div v-if="info.message">
         <div v-if="info.error" class="info-panel info-panel--error">
           <span class="info-panel__text">{{ info.message }}</span>
-          <span v-if="info.line != null" class="info-panel__jump" @click="jumpToError">跳到出错行</span>
+          <span v-if="info.line != null" class="info-panel__jump" @click="jumpToError">{{ $t('error.jump') }}</span>
           <span class="info-panel__close" @click="info.message = null">×</span>
         </div>
         <div v-else class="info-panel info-panel--ok">{{ info.message }}</div>
@@ -26,7 +26,7 @@
         <span class="result-tab__count" v-if="tab.result && tab.result.data">{{ dataRowCount(tab.result) }}</span>
         <span class="result-tab__close" @click.stop="closeTab(i)">×</span>
       </div>
-      <div class="result-tab result-tab--clear" v-if="resultTabs.length > 1" @click="closeAllTabs">清空</div>
+      <div class="result-tab result-tab--clear" v-if="resultTabs.length > 1" @click="closeAllTabs">{{ $t('tab.clear') }}</div>
 </div>
     <!-- 表格区域：flex 自动撑满剩余高度 -->
     <div class="table-wrap">
@@ -298,7 +298,7 @@ export default {
       this.$message({
         showClose: true,
         duration: 800,
-        message: "更新成功",
+        message: this.$t("status.updated"),
         type: "success",
       });
     });
@@ -1396,7 +1396,7 @@ export default {
 
       if (this.page.total != null && this.page.total > MAX_ALL_ROWS) {
         this.$message({
-          message: `共 ${this.page.total} 行，超过全量加载上限 ${MAX_ALL_ROWS} 行。请用筛选缩小范围。`,
+          message: this.$t("status.tooManyRows", { n: this.page.total, max: MAX_ALL_ROWS }),
           type: "warning",
           duration: 3000,
         });
@@ -1411,7 +1411,7 @@ export default {
       this.clearSelection();
       // 传 noAutoPaging，避免扩展侧自动分页把我们的 LIMIT 再改回 100
       this.execute(`${base} LIMIT ${MAX_ALL_ROWS + 1}`, true);
-      this.$message({ message: "正在加载全部数据…", type: "info", duration: 1500 });
+      this.$message({ message: this.$t("status.loadingAll"), type: "info", duration: 1500 });
     },
     /** 切换每页行数后重新查询第一页 */
     reloadWithPageSize(size) {
@@ -1419,7 +1419,7 @@ export default {
       if (!size) return;
       if (!this.result.sql) {
         // 没有 SQL 说明当前结果区还没有可用查询，直接返回
-        this.$message({ message: "当前没有可执行的查询", type: "warning", duration: 1500 });
+        this.$message({ message: this.$t("status.noQuery"), type: "warning", duration: 1500 });
         return;
       }
       this.page.pageNum = 1;

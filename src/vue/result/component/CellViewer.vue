@@ -10,7 +10,7 @@
     <div class="cell-viewer__meta">
       <span class="cell-viewer__field">{{ fieldName }}</span>
       <span class="cell-viewer__type" v-if="fieldType">{{ fieldType }}</span>
-      <span class="cell-viewer__count">{{ charCount }} 字符</span>
+      <span class="cell-viewer__count">{{ $t('viewer.chars', { n: charCount }) }}</span>
       <span v-if="isJson" class="cell-viewer__badge">JSON</span>
     </div>
 
@@ -20,9 +20,9 @@
     <pre v-else class="cell-viewer__text">{{ content }}</pre>
 
     <span slot="footer" class="cell-viewer__footer">
-      <el-button size="mini" @click="toggleWrap">{{ wrap ? "关闭自动换行" : "自动换行" }}</el-button>
-      <el-button size="mini" type="primary" @click="copy">复制内容</el-button>
-      <el-button size="mini" @click="$emit('update:visible', false)">关闭</el-button>
+      <el-button size="mini" @click="toggleWrap">{{ wrap ? $t('viewer.wrapOff') : $t('viewer.wrapOn') }}</el-button>
+      <el-button size="mini" type="primary" @click="copy">{{ $t('viewer.copy') }}</el-button>
+      <el-button size="mini" @click="$emit('update:visible', false)">{{ $t('viewer.close') }}</el-button>
     </span>
   </el-dialog>
 </template>
@@ -75,7 +75,7 @@ export default {
       }
     },
     title() {
-      return "查看内容";
+      return this.$t("viewer.title");
     },
   },
   watch: {
