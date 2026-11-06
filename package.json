@@ -18,10 +18,10 @@
     "Database",
     "Postgresql"
   ],
-  "homepage": "",
+  "homepage": "https://github.com/jjb4150/mysql-custom#readme",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/jjb4150/mysql-custom.git"
   },
   "activationEvents": [
     "onCommand:mysql.connection.add",
@@ -967,5 +967,8 @@
   "license": "MIT",
   "author": {
     "name": "junbiaojin"
+  },
+  "bugs": {
+    "url": "https://github.com/jjb4150/mysql-custom/issues"
   }
 }
