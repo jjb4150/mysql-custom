@@ -33,6 +33,10 @@ permissions:
   id-token: write
 
 env:
+  # vsce 版本必须 >= 4：2.x 没有 --oidc 参数，收到它会打印
+  # "error: unknown option '--oidc'" 却仍然返回退出码 0，
+  # 导致 CI 显示成功而实际什么都没发布。
+  VSCE_VERSION: "4.1.0"
   # 改成 true 就走 Trusted Publishing，不需要任何 secret
   VS_MARKETPLACE_TRUSTED_PUBLISHING: "true"
   # 是否同时发布到 Open VSX（需要 OVSX_PAT）
@@ -70,7 +74,7 @@ jobs:
         run: |
           # 显式建目录：vsce 不会自动创建 -o 指定的父目录，CI 上 dist/ 并不存在
           mkdir -p dist
-          npx --yes @vscode/vsce@2.32.0 package \
+          npx --yes @vscode/vsce@$VSCE_VERSION package \
             --no-dependencies \
             --allow-missing-repository \
             -o "dist/${{ github.event.repository.name }}-${{ steps.ver.outputs.version }}.vsix"
@@ -91,14 +95,23 @@ jobs:
 
       - name: Publish to VS Code Marketplace (Trusted Publishing)
         if: ${{ env.VS_MARKETPLACE_TRUSTED_PUBLISHING == 'true' && github.event_name == 'push' }}
-        continue-on-error: true
-        id: publish-tp
-        run: npx --yes @vscode/vsce@2.32.0 publish --oidc --packagePath dist/*.vsix
+        run: |
+          set -euo pipefail
+          out=$(npx --yes @vscode/vsce@$VSCE_VERSION publish --oidc --packagePath dist/*.vsix 2>&1) || {
+            echo "$out"; exit 1;
+          }
+          echo "$out"
+          # vsce 2.x 收到 --oidc 时会打印 "error: unknown option '--oidc'" 但退出码仍为 0。
+          # 这里显式拦一次，避免"绿了但什么都没发布"。只匹配确凿的错误形态，
+          # 不做宽泛的 /error/ —— 正常输出里也可能出现这个词。
+          if echo "$out" | grep -qiE "unknown option|^error:|ERROR +Extension"; then
+            echo "::error::vsce reported an error despite exit code 0"
+            exit 1
+          fi
 
       - name: Publish to VS Code Marketplace (PAT)
         if: ${{ env.VS_MARKETPLACE_TRUSTED_PUBLISHING != 'true' && github.event_name == 'push' }}
-        continue-on-error: true
-        run: npx --yes @vscode/vsce@2.32.0 publish --packagePath dist/*.vsix
+        run: npx --yes @vscode/vsce@$VSCE_VERSION publish --packagePath dist/*.vsix
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
