@@ -9,6 +9,8 @@ import UmyTable from 'umy-table'
 import 'umy-table/lib/theme-chalk/index.css';
 import '@/../public/theme/auto.css'
 import '@/../public/theme/umyui.css'
+// tokens 必须在 view.css 之前：view.css 里大量引用这里的变量
+import './tokens.css'
 import './view.css'
 import './icon/iconfont.css'
 Vue.use(UmyTable);

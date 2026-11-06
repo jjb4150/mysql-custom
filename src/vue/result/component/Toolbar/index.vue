@@ -103,39 +103,43 @@ export default {
 <style scoped>
 .toolbar {
   margin: 0;
-  padding: 4px 8px;
-  border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.25));
+  padding: var(--mc-sp-1) var(--mc-sp-2);
+  border-bottom: 1px solid var(--mc-border);
+  background: var(--mc-bg);
+  flex: none;
 }
 
-/* 单行布局：左侧操作区，右侧统计与分页，不再换行 */
+/* 单行布局：左侧操作区，右侧统计与分页，不换行 */
 .toolbar__row {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: nowrap;
   overflow: hidden;
-  /* 统一字号，避免中文按钮被撑大 */
-  font-size: 12px;
+  font-size: var(--mc-fs);
   line-height: 1;
 }
 
 /* 工具栏内所有按钮统一小巧尺寸 */
-.toolbar__row .el-button--mini {
+.toolbar__row ::v-deep .el-button--mini {
   padding: 5px 9px;
-  font-size: 12px;
+  font-size: var(--mc-fs);
   line-height: 1;
   height: 24px;
   display: inline-flex;
   align-items: center;
+  border-radius: var(--mc-radius-sm);
+  transition: background var(--mc-dur) var(--mc-ease),
+              border-color var(--mc-dur) var(--mc-ease),
+              color var(--mc-dur) var(--mc-ease);
 }
 
-.toolbar__row .el-button--mini i {
+.toolbar__row ::v-deep .el-button--mini i {
   font-size: 13px;
   margin-right: 3px;
 }
 
-/* 图标按钮不带文字时不需要额外间距 */
-.toolbar__row .el-button--mini.el-button--icon-only i {
+.toolbar__row ::v-deep .el-button--mini.el-button--icon-only i {
   margin-right: 0;
 }
 
@@ -145,14 +149,15 @@ export default {
 }
 
 .toolbar__cost {
-  font-size: 12px;
-  opacity: 0.75;
+  font-size: var(--mc-fs);
+  font-variant-numeric: tabular-nums;
+  color: var(--mc-fg-dim);
   white-space: nowrap;
   flex: none;
 }
 
 .toolbar__pagesize {
-  width: 100px;
+  width: 104px;
   flex: none;
 }
 
@@ -162,57 +167,55 @@ export default {
 }
 
 .toolbar__total-count {
-  font-size: 12px;
-  opacity: 0.8;
+  font-size: var(--mc-fs);
+  font-variant-numeric: tabular-nums;
+  color: var(--mc-fg-dim);
   white-space: nowrap;
   flex: none;
   padding: 0 6px;
 }
 
-.toolbar__copy {
-  flex: none;
-  margin-left: 6px;
-}
-
-.el-button--mini.is-circle {
-  padding: 6px;
-}
-
-.el-button--default {
-  padding: 0;
-  border: none;
-  font-size: 19px;
-  margin-left: 4px;
-  flex: none;
-}
-
-.el-button:focus{
-  color: inherit !important;
-  background-color: var(--vscode-editor-background);
-}
-
-.el-button:hover {
-  color: #409eff !important;
-  border-color: #c6e2ff;
-  background-color: var(--vscode-editor-background);
-}
-
-.el-pagination {
-  padding: 0;
-  flex: none;
-}
-
->>> .el-input{
-  bottom: 0;
-}
->>> .el-input--mini .el-input__inner{
+/* 输入框高度与按钮对齐 */
+.toolbar__row ::v-deep .el-input--mini .el-input__inner {
   height: 24px;
+  line-height: 24px;
+  border-radius: var(--mc-radius-sm);
+}
+
+.toolbar__row ::v-deep .el-pagination {
+  padding: 0;
+  flex: none;
+}
+
+/* 焦点：用强调色外圈，而不是改背景色。
+ * 之前写成 background: var(--vscode-editor-background)（与工具栏同色），
+ * 键盘导航时完全看不出焦点在哪。 */
+.toolbar__row ::v-deep .el-button:focus {
+  border-color: var(--mc-accent);
+  color: var(--mc-fg);
+  box-shadow: 0 0 0 1px var(--mc-accent);
+}
+
+/* 悬停：轻微提亮，不做成强调蓝（强调色留给主操作） */
+.toolbar__row ::v-deep .el-button--default:hover {
+  color: var(--mc-fg);
+  border-color: var(--mc-accent);
+  background: var(--mc-hover);
 }
 </style>
 
 <style>
-.el-pagination span,.el-pagination li,
-.btn-prev i,.btn-next i{
-  line-height: 27px !important;
+/* 分页控件：Element UI 的行高写死在 27px，会让工具栏高度不齐。
+ * 这里只需要调分页自身，所以放非 scoped 里但用 .el-pagination 精确限定。 */
+.el-pagination span,
+.el-pagination li,
+.el-pagination .btn-prev i,
+.el-pagination .btn-next i {
+  line-height: 24px !important;
+}
+
+.el-pagination .el-pager li {
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
 }
 </style>

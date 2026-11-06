@@ -171,42 +171,57 @@ export default {
 
 <style>
 .cell-viewer .el-dialog__body {
-  padding: 8px 16px 4px;
+  padding: var(--mc-sp-2) var(--mc-sp-4) var(--mc-sp-1);
 }
 
 .cell-viewer__meta {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.2));
-  margin-bottom: 8px;
+  gap: var(--mc-sp-3);
+  font-size: var(--mc-fs);
+  padding-bottom: var(--mc-sp-2);
+  border-bottom: 1px solid var(--mc-border);
+  margin-bottom: var(--mc-sp-2);
+  min-width: 0;
 }
 
 .cell-viewer__field {
   font-weight: 600;
+  font-size: var(--mc-fs-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .cell-viewer__type {
-  opacity: 0.6;
+  color: var(--mc-fg-dim);
   font-family: var(--vscode-editor-font-family, monospace);
-  font-size: 11px;
+  font-size: var(--mc-fs-sm);
+  opacity: 0.8;
+  flex: none;
 }
 
 .cell-viewer__count {
-  opacity: 0.55;
+  color: var(--mc-fg-dim);
   margin-left: auto;
-  font-size: 11px;
+  font-size: var(--mc-fs-sm);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+  opacity: 0.8;
 }
 
 .cell-viewer__badge {
-  font-size: 10px;
-  color: #409eff;
-  background: rgba(64, 158, 255, 0.15);
+  font-size: var(--mc-fs-xs);
+  color: var(--mc-accent);
+  background: transparent;
   border-radius: 3px;
-  padding: 1px 5px;
-  font-weight: 600;
+  padding: 0 5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1.6;
+  flex: none;
+  box-shadow: inset 0 0 0 1px var(--mc-accent);
 }
 
 .cell-viewer__json,
@@ -215,18 +230,24 @@ export default {
   max-height: 60vh;
   overflow: auto;
   font-family: var(--vscode-editor-font-family, monospace);
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: var(--mc-fs);
+  line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-all;
-  background: var(--vscode-textCodeBlock-background, rgba(128, 128, 128, 0.08));
-  border-radius: 4px;
-  padding: 10px 12px;
+  background: var(--vscode-textCodeBlock-background, var(--mc-hover));
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-radius);
+  padding: var(--mc-sp-3);
+  tab-size: 2;
 }
 
 .cell-viewer__footer {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--mc-sp-2);
+}
+
+.cell-viewer__footer .el-button {
+  border-radius: var(--mc-radius-sm);
 }
 </style>

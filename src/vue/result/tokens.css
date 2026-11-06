@@ -1,0 +1,104 @@
+/* ==========================================================================
+ * 设计 token
+ *
+ * 目的：把散落在各处的硬编码颜色/间距/圆角收拢成一组变量，
+ * 让「改一处，全页面一致」成为可能，也让多主题适配只在一处判断。
+ *
+ * 原则：
+ *  1. 颜色一律走 VS Code 主题变量，不自造色值 —— 否则在 Dark 2026 / Light 2026
+ *     之间必然有一方难看。主题变量缺失时才用兜底值。
+ *  2. 强调色用 --vscode-focusBorder（各主题都会给一个和背景对比度够的色），
+ *     而不是写死 #409eff。后者在浅色主题下偏浅、在深色主题下偏艳。
+ *  3. 间距用 4 的倍数，避免 3/5/7 这种碎值导致视觉不齐。
+ *  4. 圆角统一 4px（小控件）/ 6px（容器），不再混用 3/4/5/8。
+ * ========================================================================== */
+
+:root {
+  /* ---- 语义色 ---- */
+  --mc-accent: var(--vscode-focusBorder, #409eff);
+  --mc-fg: var(--vscode-foreground);
+  --mc-fg-dim: var(--vscode-descriptionForeground, rgba(128, 128, 128, 0.9));
+  --mc-bg: var(--vscode-editor-background);
+  --mc-bg-elevated: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+
+  --mc-border: var(--vscode-panel-border, rgba(128, 128, 128, 0.24));
+  --mc-border-strong: var(--vscode-contrastBorder, rgba(128, 128, 128, 0.4));
+
+  --mc-hover: var(--vscode-list-hoverBackground, rgba(128, 128, 128, 0.1));
+
+  /* 选中底色
+   *
+   * 不能用 --vscode-list-activeSelectionBackground：它是给列表/树用的，
+   * 在 Dark 2026 和 Light 2026 下都是中性灰，用在表格单元格上完全不像
+   * 「Excel 选中」(用户的心智模型)。所以这里直接用强调色做一层半透明叠加，
+   * 两种主题下都是明显的蓝色调，且和单元格文字对比度足够。
+   *
+   * 不用 color-mix：部分 Electron 版本不支持，整条声明会失效。 */
+  --mc-accent-rgb: 64, 158, 255;
+  --mc-selected: rgba(var(--mc-accent-rgb), 0.20);
+  --mc-selected-border: var(--vscode-focusBorder, var(--mc-accent));
+
+  /* 危险 / 成功：用 VS Code 的语义色，主题切换时自动跟随。
+   *
+   * 错误底色不用 --vscode-inputValidation-errorBackground：那个变量在
+   * Dark 2026 下是接近 #5a1d1d 的深红，铺满一整条会非常刺眼。
+   * 这里只叠一层很淡的同色，靠左侧竖线和文字颜色表达「这是错误」。 */
+  --mc-danger: var(--vscode-errorForeground, #f14c4c);
+  --mc-danger-bg: rgba(241, 76, 76, 0.07);
+  --mc-success: var(--vscode-testing-iconPassed, #3fb950);
+  --mc-warning: var(--vscode-editorWarning-foreground, #d29922);
+
+  /* ---- 间距 ---- */
+  --mc-sp-1: 4px;
+  --mc-sp-2: 8px;
+  --mc-sp-3: 12px;
+  --mc-sp-4: 16px;
+
+  /* ---- 圆角 ---- */
+  --mc-radius-sm: 4px;
+  --mc-radius: 6px;
+
+  /* ---- 字号 ---- */
+  --mc-fs-xs: 10px;
+  --mc-fs-sm: 11px;
+  --mc-fs: 12px;
+  --mc-fs-md: 13px;
+
+  /* ---- 动效：统一曲线，避免有的地方 ease 有的 linear ---- */
+  --mc-ease: cubic-bezier(0.2, 0, 0.13, 1);
+  --mc-dur: 120ms;
+}
+
+/* --------------------------------------------------------------------------
+ * 滚动条：VS Code webview 默认滚动条偏粗且样式不一致，
+ * 统一成细窄圆角，悬停才明显。
+ * -------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vscode-scrollbarSlider-background, rgba(128, 128, 128, 0.35));
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vscode-scrollbarSlider-hoverBackground, rgba(128, 128, 128, 0.55));
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--vscode-scrollbarSlider-activeBackground, rgba(128, 128, 128, 0.7));
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

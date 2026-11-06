@@ -1,3 +1,12 @@
+/* ==========================================================================
+ * 结果页样式
+ *
+ * 颜色/间距/圆角一律引用 tokens.css 里的变量，不在这里写死色值。
+ * 原因：写死 #444 / #dcdfe6 / #409eff 这类值，在 Dark 2026 和 Light 2026
+ * 之间必然有一方难看 —— 之前 .info-panel 用的就是浅色主题的 #444，
+ * 在默认深色主题下几乎看不见。
+ * ========================================================================== */
+
 html,
 body {
   font-family: var(--vscode-font-family);
@@ -5,6 +14,9 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
+  color: var(--mc-fg);
+  /* 中文字形更饱满，关掉字距微调避免小字号下参差 */
+  -webkit-font-smoothing: antialiased;
 }
 
 /* 整体纵向布局：工具栏 / tab 栏 / 表格自适应填满 */
@@ -13,6 +25,7 @@ body {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background: var(--mc-bg);
 }
 
 /* 表格容器吃掉剩余空间，避免底部留黑 */
@@ -33,127 +46,172 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
-  color: #444;
+  color: var(--mc-fg-dim);
   width: 100%;
   flex: none;
 }
 
-.plx-header--column.col--checkbox > .plx-cell .plx-cell--title{
-overflow: unset;
+.plx-header--column.col--checkbox > .plx-cell .plx-cell--title {
+  overflow: unset;
 }
 
-/*
- * 表头：字段名 + 注释两行显示。
- * 高度要放开（否则第二行被裁），但溢出必须隐藏 —— 之前设成 visible，
- * 超长注释会溢出到相邻列造成文字重叠。
- */
+/* ==========================================================================
+ * 表头：字段名 + 注释两行
+ *
+ * 高度要放开（否则第二行被裁），但溢出必须隐藏 —— 设成 visible 会让
+ * 超长注释溢出到相邻列造成文字重叠。
+ * ========================================================================== */
 .plx-header--column > .plx-cell {
   overflow: hidden !important;
   height: auto !important;
-  min-height: 46px;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  min-height: 48px;
+  padding: var(--mc-sp-1) var(--mc-sp-2) !important;
   display: flex;
-  /* 表头内容左对齐：字段名长短不同时边缘整齐，不再居中参差 */
   align-items: center;
   justify-content: flex-start;
+  /* 表头底色比内容区低一档亮度，形成层次。
+     主题没给 editorGroupHeader 时用极淡的中性叠加，
+     而不是 transparent —— 全透明会让表头和内容糊成一片。 */
+  background: var(--vscode-editorGroupHeader-tabsBackground,
+                rgba(128, 128, 128, 0.06));
+  border-bottom: 1px solid var(--mc-border) !important;
+  /* 表头文字用稍弱的字重，让内容区数据和表头有主次 */
+  color: var(--mc-fg);
 }
 
 .plx-header--column > .plx-cell .plx-cell--title {
   overflow: hidden !important;
   white-space: nowrap !important;
   text-overflow: ellipsis !important;
-  line-height: 1.25 !important;
+  line-height: 1.3 !important;
   width: 100%;
 }
 
 /* 排序箭头不要挤占字段名空间 */
 .plx-header--column .plx-cell--sort {
   flex: none;
-  opacity: 0.55;
+  opacity: 0.45;
+  transition: opacity var(--mc-dur) var(--mc-ease);
 }
 
-/* ===== 结果 tab 栏：一次查询一个 tab ===== */
+.plx-header--column:hover .plx-cell--sort {
+  opacity: 0.8;
+}
+
+/* ==========================================================================
+ * 结果 tab 栏
+ * ========================================================================== */
 .result-tabs {
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 2px 4px;
+  gap: var(--mc-sp-1);
+  padding: var(--mc-sp-1) var(--mc-sp-2);
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
-  border-bottom: 1px solid var(--vscode-panel-border, #333);
+  border-bottom: 1px solid var(--mc-border);
   background: var(--vscode-editorGroupHeader-tabsBackground, transparent);
   flex: none;
-}
-
-.result-tabs::-webkit-scrollbar {
-  height: 4px;
+  scrollbar-width: thin;
 }
 
 .result-tab {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  font-size: 12px;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: var(--mc-fs);
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: var(--mc-radius-sm);
   border: 1px solid transparent;
-  color: var(--vscode-descriptionForeground);
+  color: var(--mc-fg-dim);
   max-width: 240px;
   flex: none;
   user-select: none;
+  transition: background var(--mc-dur) var(--mc-ease),
+              color var(--mc-dur) var(--mc-ease),
+              border-color var(--mc-dur) var(--mc-ease);
+  position: relative;
 }
 
 .result-tab:hover {
-  background: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.06));
+  background: var(--mc-hover);
+  color: var(--mc-fg);
 }
 
+/* 激活态：用左侧强调条 + 底色，而不是整圈描边（描边在暗色下显脏） */
 .result-tab--active {
-  background: var(--vscode-tab-activeBackground, rgba(64, 158, 255, 0.18));
-  border-color: var(--vscode-focusBorder, #409eff);
-  color: var(--vscode-foreground);
+  background: var(--vscode-tab-activeBackground, var(--mc-hover));
+  color: var(--mc-fg);
   font-weight: 600;
+}
+
+.result-tab--active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--mc-accent);
 }
 
 .result-tab__label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .result-tab__count {
-  font-size: 10px;
-  opacity: 0.7;
-  background: rgba(128, 128, 128, 0.28);
-  border-radius: 8px;
-  padding: 0 5px;
+  font-size: var(--mc-fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--mc-fg-dim);
+  background: var(--vscode-badge-background, rgba(128, 128, 128, 0.24));
+  color: var(--vscode-badge-foreground, inherit);
+  border-radius: 9px;
+  padding: 1px 6px;
   flex: none;
+  line-height: 1.4;
 }
 
 .result-tab__close {
-  opacity: 0.5;
+  opacity: 0.4;
   font-size: 14px;
   line-height: 1;
   flex: none;
   padding: 0 2px;
+  border-radius: 3px;
+  transition: opacity var(--mc-dur) var(--mc-ease),
+              background var(--mc-dur) var(--mc-ease);
+}
+
+.result-tab:hover .result-tab__close {
+  opacity: 0.8;
 }
 
 .result-tab__close:hover {
   opacity: 1;
-  color: #f56c6c;
+  background: var(--mc-danger-bg);
+  color: var(--mc-danger);
 }
 
 .result-tab--clear {
-  color: var(--vscode-descriptionForeground);
-  opacity: 0.75;
+  color: var(--mc-fg-dim);
+  opacity: 0.7;
 }
 
-/* 搜索匹配高亮 */
+.result-tab--clear:hover {
+  opacity: 1;
+}
+
+/* ==========================================================================
+ * 搜索高亮
+ * ========================================================================== */
 .search-highlight {
-  background: #ffd54f;
-  color: #1a1a1a;
+  background: var(--vscode-editor-findMatchHighlightBackground, #ffd54f);
+  color: var(--vscode-editor-background, #1a1a1a);
   border-radius: 2px;
   padding: 0 1px;
   font-weight: 600;
@@ -161,93 +219,99 @@ overflow: unset;
 
 /* 当前定位到的命中单元格 */
 .search-current {
-  outline: 2px solid #ff9800;
+  outline: 2px solid var(--vscode-editor-findMatchBorder, var(--mc-accent));
   outline-offset: -2px;
+  border-radius: 2px;
 }
 
-/* 工具栏里的匹配计数 */
 .search-counter {
-  font-size: 12px;
-  opacity: 0.85;
+  font-size: var(--mc-fs);
+  font-variant-numeric: tabular-nums;
+  color: var(--mc-fg-dim);
   padding: 0 6px;
   min-width: 42px;
   display: inline-block;
   text-align: center;
 }
 
-/* 总数未知（未统计或该查询不统计） */
 .total-unknown {
-  font-size: 12px;
-  opacity: 0.55;
+  font-size: var(--mc-fs);
+  color: var(--mc-fg-dim);
+  opacity: 0.7;
   padding: 0 6px;
+  white-space: nowrap;
 }
 
-/* ===== 单元格交互 =====
- * 默认不可编辑，鼠标可自由框选文本；
- * 双击后进入编辑态，有明显边框提示。
- */
+/* ==========================================================================
+ * 单元格
+ * ========================================================================== */
 .edit-column {
+  position: relative;
   user-select: text;
   cursor: cell;
-  padding: 0 6px;
+  padding: 0 var(--mc-sp-2);
   outline: none;
   border: 1px solid transparent;
   box-sizing: border-box;
+  transition: background var(--mc-dur) var(--mc-ease);
+  /* 数字右对齐更易比较大小 —— 但要在有值时判断，见 .is-numeric */
+  font-variant-numeric: tabular-nums;
 }
 
 .edit-column:hover {
-  background: rgba(128, 128, 128, 0.08);
+  background: var(--mc-hover);
 }
 
-/* 选中的单元格（Excel 风格浅蓝底） */
+/* 选中：底色 + 内描边。用 inset box-shadow 而不是 border，
+ * 避免加边框后内容被挤动导致行内文字跳动。 */
 .edit-column.is-selected {
-  background: rgba(64, 158, 255, 0.22) !important;
-  box-shadow: inset 0 0 0 1px rgba(64, 158, 255, 0.55);
+  background: var(--mc-selected) !important;
+  box-shadow: inset 0 0 0 1px var(--mc-selected-border);
 }
 
-/* 整行勾选高亮：让勾选的行动作更明显 */
+/* 整行勾选高亮 */
 .plx-body--row.row--checked,
 .plx-body--row.is--checked {
-  background: rgba(64, 158, 255, 0.14) !important;
+  background: var(--mc-selected) !important;
 }
 
-/* 复选框本身放大一点，便于点击 */
+/* 复选框放大一点，便于点击 */
 .plx-body--column.col--checkbox .plx-checkbox,
 .plx-header--column.col--checkbox .plx-checkbox {
-  transform: scale(1.15);
+  transform: scale(1.12);
   cursor: pointer;
 }
 
-/* 列头选中态 */
-.field-header--selected {
-  background: rgba(64, 158, 255, 0.22);
-  border-radius: 3px;
-}
-
-/* ===== 表头悬停提示 =====
- * 表头的 DDL 提示会遮住工具栏按钮。
- * 两个处理：
- * 1) 提示本身不接收鼠标事件（pointer-events:none），鼠标穿过它继续操作
+/* ==========================================================================
+ * 表头 tooltip
+ *
+ * 表头的 DDL 提示会遮住工具栏按钮，两个处理：
+ * 1) 不接收鼠标事件，鼠标穿过它继续操作
  * 2) 半透明，减少视觉遮挡
- */
+ * ========================================================================== */
 .el-tooltip__popper.is-dark {
   pointer-events: none !important;
-  opacity: 0.94;
+  opacity: 0.96;
   max-width: 420px;
   word-break: break-all;
+  border-radius: var(--mc-radius-sm) !important;
+  font-size: var(--mc-fs) !important;
+  line-height: 1.5 !important;
 }
 
-/* 编辑态：单行内联编辑，光标可自由移动、可自由拖动圈选。
- * 关键点：
+/* ==========================================================================
+ * 编辑态：单行内联编辑
+ *
  *  - white-space: pre 而不是 pre-wrap —— 不换成多行，否则 HOME/END 只在
  *    当前视觉行内跳，用户会觉得"没到头"；单行时 HOME/END 才是行首行尾。
- *  - overflow-x: auto + overflow-y: hidden —— 超宽内容横向滚动而不是撑破行高。
- *  - user-select: text —— 允许鼠标拖选内容。
- */
+ *  - overflow-x: auto —— 超宽内容横向滚动而不是撑破行高。
+ * ========================================================================== */
 .edit-column.is-editing {
   cursor: text;
-  background: var(--vscode-input-background, rgba(64, 158, 255, 0.12));
-  border-color: var(--vscode-focusBorder, #409eff);
+  background: var(--vscode-input-background, var(--mc-bg));
+  border-color: var(--mc-accent);
+  box-shadow: 0 0 0 1px var(--mc-accent);
+  border-radius: 2px;
   user-select: text;
   -webkit-user-select: text;
   white-space: pre;
@@ -255,135 +319,138 @@ overflow: unset;
   overflow-y: hidden;
   z-index: 2;
   position: relative;
-  /* 编辑时不要给右侧的展开按钮留空，避免光标被挤在中间 */
-  padding-right: 6px;
+  padding-right: var(--mc-sp-2);
 }
 
-/* ===== 长内容展开按钮 =====
- * 平时半透明，悬停单元格时才明显；不参与编辑、不触发选区。
- */
-.edit-column {
-  position: relative;
-}
-
+/* ==========================================================================
+ * 长内容展开按钮
+ *
+ * 平时隐藏，悬停单元格时才浮现；不参与编辑、不触发选区。
+ * ========================================================================== */
 .cell-expand {
   position: absolute;
-  right: 2px;
+  right: 3px;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) scale(0.9);
   width: 16px;
   height: 16px;
   line-height: 14px;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  border-radius: 3px;
+  border-radius: var(--mc-radius-sm);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.12s ease;
-  color: var(--vscode-foreground);
-  background: var(--vscode-editorWidget-background, rgba(80, 80, 80, 0.9));
-  border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+  transition: opacity var(--mc-dur) var(--mc-ease),
+              transform var(--mc-dur) var(--mc-ease),
+              background var(--mc-dur) var(--mc-ease);
+  color: var(--mc-fg);
+  background: var(--mc-bg-elevated);
+  border: 1px solid var(--mc-border);
   user-select: none;
   z-index: 3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 
 /* 悬停整格时按钮才浮现 */
 .plx-body--column:hover .cell-expand,
 .edit-column:hover .cell-expand {
-  opacity: 0.85;
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
 }
 
 .cell-expand:hover {
-  opacity: 1 !important;
-  background: var(--vscode-focusBorder, #409eff);
-  color: #fff;
-  border-color: var(--vscode-focusBorder, #409eff);
+  background: var(--mc-accent);
+  color: var(--vscode-editor-background, #fff);
+  border-color: var(--mc-accent);
 }
 
 /* JSON 内容的按钮用绿色，一眼能区分 */
 .cell-expand--json {
-  color: #7ec699;
-  border-color: rgba(126, 198, 153, 0.5);
+  color: var(--mc-success);
+  border-color: var(--mc-success);
 }
 
 .cell-expand--json:hover {
-  background: #4caf7d;
-  color: #fff;
-  border-color: #4caf7d;
+  background: var(--mc-success);
+  color: var(--vscode-editor-background, #fff);
+  border-color: var(--mc-success);
 }
 
 /* 有展开按钮的单元格，右侧留出空间避免文字压住按钮 */
 .edit-column.has-expand {
-  padding-right: 20px;
+  padding-right: 22px;
 }
 
-/* 空值占位稍微淡一点，避免干扰阅读 */
+/* 空值占位：淡一点，但不至于看不见 */
 .null-column {
-  opacity: 0.5;
+  color: var(--mc-fg-dim);
+  opacity: 0.65;
   font-style: italic;
+  font-size: var(--mc-fs-sm);
+  letter-spacing: 0.2px;
 }
 
-.sql-pannel{
-  width:100%;
-  font-size: var(--vscode-font-size);
-}
-.sql-pannel textarea{
-  font-family: var(--vscode-editor-font-family);
-  padding-top: 0;
-  padding-left: 10px;
-}
-
-.hint {
-  color: var(--editor-color);
-}
-
+/* ==========================================================================
+ * 错误 / 信息面板
+ * ========================================================================== */
 .info-panel {
-  color: #444;
-  font-size: var(--vscode-font-size);
-  border: 1px solid #dcdfe6;
-  border-radius: 5px;
-  padding: 10px;
-  margin-left: 6px;
+  color: var(--mc-fg);
+  font-size: var(--mc-fs);
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-radius);
+  padding: var(--mc-sp-2) var(--mc-sp-3);
+  margin: var(--mc-sp-1) var(--mc-sp-2) 0;
+  background: var(--mc-bg-elevated);
 }
 
-/* 错误提示：单行摘要 + 跳转 + 关闭，不再回显整段 SQL */
+/* 错误：单行摘要 + 跳转 + 关闭，不回显整段 SQL。
+ *
+ * 视觉克制：只用左侧一条竖线 + 极淡底色表示状态，不用整圈红框。
+ * 之前整圈 1px 红边 + 满宽红底，在浅色主题下像一块警告牌，
+ * 大段 SQL 报错时非常刺眼。 */
 .info-panel--error {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  color: #f14c4c;
-  border-color: rgba(241, 76, 76, 0.45);
-  background: rgba(241, 76, 76, 0.08);
+  gap: var(--mc-sp-3);
+  color: var(--mc-danger);
+  border-color: transparent;
+  border-left: 3px solid var(--mc-danger);
+  background: var(--mc-danger-bg);
+  border-radius: 0 var(--mc-radius-sm) var(--mc-radius-sm) 0;
 }
 
 .info-panel--ok {
-  color: var(--vscode-descriptionForeground);
-  border-color: rgba(128, 128, 128, 0.25);
+  color: var(--mc-fg-dim);
+  border-color: var(--mc-border);
 }
 
 .info-panel__text {
   flex: 1 1 auto;
   /* 保留换行（错误原文里会有多行），同时避免超长内容撑破面板 */
   white-space: pre-wrap;
-  word-break: break-all;
-  /* 错误再多也只占约 5 行，这里只做"知道出错了"的判断，详情去编辑器看 */
+  word-break: break-word;
+  /* 错误再多也只占约 5 行，详情去编辑器看 */
   max-height: 5.5em;
   overflow: auto;
-  line-height: 1.4;
+  line-height: 1.5;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: var(--mc-fs-sm);
 }
 
 .info-panel__jump,
 .info-panel__close {
   flex: 0 0 auto;
   cursor: pointer;
-  opacity: 0.75;
+  opacity: 0.8;
   user-select: none;
+  transition: opacity var(--mc-dur) var(--mc-ease);
 }
 
 .info-panel__jump {
-  color: var(--vscode-textLink-foreground, #3794ff);
+  color: var(--vscode-textLink-foreground, var(--mc-accent));
   white-space: nowrap;
+  font-weight: 600;
 }
 
 .info-panel__jump:hover,
@@ -392,6 +459,59 @@ overflow: unset;
   text-decoration: underline;
 }
 
-.el-popover__reference{
-  background-color: #409EFF;
+/* ==========================================================================
+ * 列选择弹层
+ * ========================================================================== */
+.column-picker__actions {
+  margin-bottom: var(--mc-sp-2);
+  display: flex;
+  gap: var(--mc-sp-1);
+}
+
+.column-picker__list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 2px;
+}
+
+/* ==========================================================================
+ * SQL 面板（部分场景仍会用到）
+ * ========================================================================== */
+.sql-pannel {
+  width: 100%;
+  font-size: var(--vscode-font-size);
+}
+
+.sql-pannel textarea {
+  font-family: var(--vscode-editor-font-family);
+  padding-top: 0;
+  padding-left: 10px;
+}
+
+/* ==========================================================================
+ * Element UI 覆盖
+ *
+ * 只覆盖必要的部分，且一律基于主题变量。
+ * 之前的写法有几个问题，这里一并修掉：
+ *  - .el-popover__reference { background:#409EFF } 会把「列选择」按钮
+ *    整块染成强调蓝，看起来像个主操作按钮
+ *  - .el-button--default { padding:0; border:none; font-size:19px }
+ *    在 scoped 里没加深度选择器，实际污染了全局所有默认按钮
+ * ========================================================================== */
+
+/* popover 触发器保持透明，不要整块染色 */
+.el-popover__reference {
+  background-color: transparent;
+}
+
+/* 结果页里的按钮统一高度与圆角 */
+.el-button--mini {
+  border-radius: var(--mc-radius-sm);
+}
+
+.el-button--mini.is-circle {
+  padding: 6px;
 }

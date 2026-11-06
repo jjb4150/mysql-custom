@@ -124,18 +124,22 @@ export default {
 </script>
 
 <style>
-/* ===== 表头单元：左对齐、两行紧凑排布 ===== */
+/* ===== 表头单元：左对齐、两行紧凑排布 =====
+ * 颜色/间距统一走 tokens.css 的变量，不写死色值。
+ */
 .field-header {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   line-height: 1.3;
-  padding: 2px 4px;
+  padding: 2px 2px;
   overflow: hidden;
   width: 100%;
   text-align: left;
+  border-radius: var(--mc-radius-sm);
+  transition: background var(--mc-dur) var(--mc-ease);
 }
 
 .field-header__name-row {
@@ -146,68 +150,70 @@ export default {
   max-width: 100%;
 }
 
-/* 字段名：主信息，加粗但不过重 */
+/* 字段名：主信息，用中等字重 + 略紧的字距，比纯 bold 更清爽 */
 .field-header__name {
   font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.2px;
+  font-size: var(--mc-fs);
+  letter-spacing: 0.1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
-  color: var(--vscode-foreground);
+  color: var(--mc-fg);
   user-select: text;
   cursor: text;
 }
 
-/* 必填标记：紧贴字段名的小圆点，不再用飘着的红星 */
+/* 必填标记：紧贴字段名的小圆点，不用飘着的红星 */
 .field-header__required {
   flex: none;
-  width: 3px;
-  height: 3px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
-  background: #f56c6c;
-  opacity: 0.9;
-  margin-right: 1px;
+  background: var(--mc-danger);
+  opacity: 0.85;
 }
 
-/* 主键标记：柔和胶囊，去掉硬边框 */
+/* 主键标记：柔和胶囊。用强调色描边而非填充——
+ * 填充在暗色主题下会盖住字段名，描边更轻。 */
 .field-header__pk {
   flex: none;
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.4px;
-  color: #409eff;
-  background: rgba(64, 158, 255, 0.14);
+  letter-spacing: 0.3px;
+  color: var(--mc-accent);
+  background: transparent;
   border-radius: 3px;
-  padding: 1px 4px;
-  line-height: 1.2;
+  padding: 0 3px;
+  line-height: 1.5;
+  box-shadow: inset 0 0 0 1px var(--mc-accent);
+  opacity: 0.75;
 }
 
-/* 注释/类型行：提高可读性，不再灰到看不见 */
+/* 注释/类型行：次要信息，但不能灰到看不见 */
 .field-header__sub {
-  font-size: 11px;
+  font-size: var(--mc-fs-sm);
   line-height: 1.2;
-  opacity: 0.72;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
   max-width: 100%;
-  color: var(--vscode-descriptionForeground, inherit);
+  color: var(--mc-fg-dim);
+  opacity: 0.85;
 }
 
 /* 副标题是"类型"时更弱：类型是次要信息，不该和中文注释抢注意力 */
 .field-header__sub--type {
-  font-size: 10px;
-  opacity: 0.45;
+  font-size: var(--mc-fs-xs);
+  opacity: 0.55;
   font-family: var(--vscode-editor-font-family, monospace);
+  letter-spacing: 0.1px;
 }
 
-/* 列头整体选中态：与单元格选区一致的蓝调 */
+/* 列头整体选中态：与单元格选区同一套色 */
 .field-header--selected {
-  background: rgba(64, 158, 255, 0.16);
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 1px rgba(64, 158, 255, 0.4);
+  background: var(--mc-selected);
+  box-shadow: inset 0 0 0 1px var(--mc-selected-border);
 }
 </style>
